@@ -21,10 +21,9 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.focusRestorer
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -71,20 +70,10 @@ fun HomeScreen(
                 .align(Alignment.BottomStart)
                 .fillMaxHeight(0.40f)
                 .focusRequester(columnFocusRequester)
-                .focusProperties {
-                    enter = {
-                        if (columnFocusRequester.restoreFocusedChild()) FocusRequester.Cancel
-                        else FocusRequester.Default
-                    }
-                    exit = {
-                        columnFocusRequester.saveFocusedChild()
-
-                        FocusRequester.Default
-                    }
-                }
+                .focusRestorer { columnFocusRequester }
         ) {
-            items(count = 20) { index ->
-                HomeCollectionRow(index = index)
+            items(count = 20) { _ ->
+                HomeCollectionRow()
                 Spacer(modifier = Modifier.height(32.dp))
             }
             item { Spacer(modifier = Modifier.height(24.dp)) }
@@ -95,35 +84,23 @@ fun HomeScreen(
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun HomeCollectionRow(
-    index: Int,
     modifier: Modifier = Modifier
 ) {
     val focusRequester = remember { FocusRequester() }
-    val focusManager = LocalFocusManager.current
 
     Box(modifier = modifier) {
         TvLazyRow(
             pivotOffsets = PivotOffsets(0.05f),
             modifier = Modifier
                 .focusRequester(focusRequester)
-                .focusProperties {
-                    enter = {
-                        if (focusRequester.restoreFocusedChild()) FocusRequester.Cancel
-                        else {
-                            focusRequester.requestFocus()
-                            FocusRequester.Cancel
-                        }
-                    }
-                    exit = {
-                        focusRequester.saveFocusedChild()
-
-                        FocusRequester.Default
-                    }
-                }
+                .focusRestorer { focusRequester }
         ) {
             item { Spacer(modifier = Modifier.width(32.dp)) }
 
-            items(count = 10) { homeItemIndex ->
+            items(
+                count = 10,
+                key = { it }
+            ) { homeItemIndex ->
                 HomeItem(index = homeItemIndex)
                 Spacer(modifier = Modifier.width(16.dp))
             }
